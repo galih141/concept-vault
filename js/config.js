@@ -4,7 +4,7 @@
 // ────────────────────────────────────────────────────────────
 const CONFIG = {
   apiKey: "AIzaSyAQG5QOcnyxZeukzXMsSYj2O0dvq-UDpp8",     // Google Cloud → APIs & Services → Credentials
-  rootFolderId: "concept-vault", // the Drive folder that contains your category folders
+  rootFolderId: "1tje6L1v3d3PotSh93H8YBaBVgKpXln-e", // the Drive folder that contains your category folders
 
   // ── Optional customization below ──
   siteTitle: "CONCEPT VAULT",
