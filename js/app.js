@@ -5,7 +5,7 @@
    drop it into the right Drive folder from your phone or desktop.
    ============================================================ */
 
-const PALETTE = ["tab-blue", "tab-red", "tab-gold", "tab-green", "tab-purple", "tab-teal"];
+const PALETTE = ["c-blue", "c-red", "c-gold", "c-green", "c-purple", "c-teal"];
 const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 
@@ -83,7 +83,7 @@ function thumbAt(file, size) {
 
 function colorFor(name, index) {
   const override = (CONFIG.categoryColors || {})[name.toLowerCase()];
-  const map = { blue: "tab-blue", red: "tab-red", gold: "tab-gold", green: "tab-green", purple: "tab-purple", teal: "tab-teal" };
+  const map = { blue: "c-blue", red: "c-red", gold: "c-gold", green: "c-green", purple: "c-purple", teal: "c-teal" };
   if (override && map[override]) return map[override];
   return PALETTE[index % PALETTE.length];
 }
@@ -146,7 +146,13 @@ function renderTabs() {
     btn.className = "tab";
     btn.style.setProperty("--tab-color", `var(--${cat.color})`);
     btn.dataset.id = cat.id;
-    btn.innerHTML = `<span class="tab-label">${escapeHtml(cat.name)}</span>`;
+    btn.innerHTML = `
+      <span class="tab-icon">${escapeHtml(cat.name.charAt(0))}</span>
+      <span class="tab-text">
+        <span class="tab-label">${escapeHtml(cat.name)}</span>
+        <span class="tab-count" data-count></span>
+      </span>
+    `;
     btn.addEventListener("click", () => selectCategory(cat));
     els.tabs.appendChild(btn);
   });
@@ -179,13 +185,19 @@ async function selectCategory(cat) {
     els.imageGrid.hidden = true;
     els.folderGrid.innerHTML = "";
 
+    const tabBtn = [...els.tabs.children].find(t => t.dataset.id === cat.id);
+    const countEl = tabBtn?.querySelector("[data-count]");
+    if (countEl) countEl.textContent = `${dirs.length} folder${dirs.length === 1 ? "" : "s"}`;
+
     for (const dir of dirs) {
       const card = document.createElement("button");
       card.className = "folder";
       card.innerHTML = `
         <span class="folder-swatch" style="background:var(--${cat.color})"></span>
-        <span class="folder-name">${escapeHtml(dir.name)}</span>
-        <span class="folder-meta">…</span>
+        <div>
+          <div class="folder-name">${escapeHtml(dir.name)}</div>
+          <div class="folder-meta">…</div>
+        </div>
       `;
       card.addEventListener("click", () => selectFolder(cat, dir));
       els.folderGrid.appendChild(card);
