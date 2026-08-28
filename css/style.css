@@ -1,0 +1,388 @@
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root {
+  --paper:        #E7DCBE;   /* kraft/manila background   */
+  --paper-deep:   #DACB9F;   /* rail background            */
+  --sheet:        #F3ECD9;   /* main sheet surface          */
+  --ink:          #23282B;   /* near-black ink              */
+  --ink-soft:     #5B6360;   /* secondary ink                */
+  --line:         #23282B;
+  --shadow:       rgba(30, 22, 10, 0.28);
+
+  --tab-blue:     #3E6FB0;
+  --tab-red:      #C4425A;
+  --tab-gold:     #CE9A2E;
+  --tab-green:    #4F8E63;
+  --tab-purple:   #7C5AA6;
+  --tab-teal:     #3E8B8B;
+
+  --font-hand:  'Kalam', cursive;
+  --font-body:  'Inter', sans-serif;
+  --font-mono:  'IBM Plex Mono', monospace;
+
+  --radius-folder: 6px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(35,40,43,0.06) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+.binder {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  min-height: 100vh;
+  align-items: start;
+}
+
+/* ============================================================
+   LEFT RAIL — the "document tab" index
+   ============================================================ */
+.rail {
+  background: var(--paper-deep);
+  min-height: 100vh;
+  border-right: 3px solid var(--ink);
+  padding-top: 28px;
+  position: sticky;
+  top: 0;
+}
+
+.rail-head {
+  padding: 0 10px 22px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 10px;
+}
+.rail-head-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--ink-soft);
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 6px 0;
+}
+
+.tab {
+  position: relative;
+  margin-right: -3px;
+  border: 3px solid var(--ink);
+  border-right: none;
+  background: var(--sheet);
+  color: var(--ink);
+  min-height: 128px;
+  padding: 14px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  clip-path: polygon(0 12px, 12px 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  transition: transform .15s ease, background .15s ease;
+  transform: translateX(0) rotate(var(--wobble, 0deg));
+}
+
+.tab:nth-child(3n+1) { --wobble: -0.4deg; }
+.tab:nth-child(3n+2) { --wobble: 0.3deg; }
+.tab:nth-child(3n+3) { --wobble: -0.2deg; }
+
+.tab .tab-label {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 18px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.tab .tab-count {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-soft);
+}
+
+.tab.active {
+  background: var(--tab-color, var(--tab-blue));
+  color: #FBF7EC;
+  transform: translateX(6px) rotate(0deg);
+  z-index: 2;
+}
+.tab.active .tab-count { color: #FBF7EC; opacity: .85; }
+
+.tab:not(.active):hover {
+  transform: translateX(2px) rotate(0deg);
+}
+
+.tab-color-strip {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 6px;
+  background: var(--tab-color, var(--tab-blue));
+}
+
+/* ============================================================
+   MAIN SHEET
+   ============================================================ */
+.sheet {
+  background: var(--sheet);
+  min-height: 100vh;
+  padding: 34px 44px 60px;
+  position: relative;
+}
+
+.sheet::before {
+  /* torn/folded paper edge, echoing the sketch's stepped title bar */
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--ink);
+}
+
+.sheet-header {
+  margin-bottom: 30px;
+}
+
+.title {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: clamp(32px, 4vw, 52px);
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+}
+
+.crumbs {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 18px;
+}
+.crumbs .crumb {
+  cursor: pointer;
+  border-bottom: 1px dashed transparent;
+}
+.crumbs .crumb:hover { border-bottom-color: var(--ink-soft); }
+.crumbs .sep { color: #9C9280; }
+.crumbs .current { color: var(--ink); font-weight: 500; }
+
+/* ============================================================
+   STATE MESSAGE (loading / empty / error)
+   ============================================================ */
+.state-msg {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding: 40px 4px;
+  border: 2px dashed #B9AD8B;
+  border-radius: 4px;
+  max-width: 520px;
+  line-height: 1.6;
+}
+.state-msg a { color: var(--ink); }
+
+/* ============================================================
+   FOLDER GRID
+   ============================================================ */
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 30px 26px;
+}
+
+.folder {
+  border: 3px solid var(--ink);
+  background: var(--sheet);
+  clip-path: polygon(
+    0% 22%, 34% 22%, 42% 4%, 100% 4%,
+    100% 100%, 0% 100%
+  );
+  min-height: 168px;
+  padding: 26px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-align: left;
+  position: relative;
+  transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 5px 5px 0 var(--shadow);
+}
+
+.folder:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 var(--shadow);
+}
+
+.folder-name {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.folder-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.folder-swatch {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+}
+
+/* ============================================================
+   IMAGE GRID
+   ============================================================ */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 20px;
+}
+
+.thumb {
+  border: 3px solid var(--ink);
+  background: #fff;
+  padding: 8px 8px 34px;
+  cursor: zoom-in;
+  position: relative;
+  transition: transform .15s ease;
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+.thumb:hover { transform: translate(-2px, -2px); }
+
+.thumb img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+  background: #ddd3b8;
+}
+
+.thumb .thumb-name {
+  position: absolute;
+  bottom: 8px; left: 8px; right: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   LIGHTBOX
+   ============================================================ */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 10, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 40px;
+}
+
+.lb-figure {
+  margin: 0;
+  max-width: min(90vw, 1100px);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.lb-figure img {
+  max-width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  border: 3px solid #FBF7EC;
+  background: #111;
+}
+
+.lb-figure figcaption {
+  font-family: var(--font-mono);
+  color: #EFE6CE;
+  font-size: 13px;
+}
+
+.lb-close, .lb-nav {
+  position: absolute;
+  background: transparent;
+  border: none;
+  color: #FBF7EC;
+  font-size: 30px;
+  line-height: 1;
+  padding: 10px 14px;
+}
+.lb-close { top: 18px; right: 24px; font-size: 34px; }
+.lb-prev { left: 10px; top: 50%; transform: translateY(-50%); font-size: 40px; }
+.lb-next { right: 10px; top: 50%; transform: translateY(-50%); font-size: 40px; }
+.lb-close:hover, .lb-nav:hover { color: var(--tab-gold); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 720px) {
+  .binder { grid-template-columns: 1fr; }
+  .rail {
+    position: static;
+    min-height: auto;
+    border-right: none;
+    border-bottom: 3px solid var(--ink);
+    padding: 16px 12px;
+  }
+  .rail-head { display: none; }
+  .tabs { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+  .tab {
+    min-height: 44px;
+    padding: 8px 14px;
+    clip-path: none;
+    border-right: 3px solid var(--ink);
+  }
+  .tab .tab-label { writing-mode: horizontal-tb; transform: none; font-size: 15px; }
+  .tab .tab-count { position: static; transform: none; margin-left: 6px; }
+  .tab.active { transform: none; }
+  .sheet { padding: 24px 18px 40px; }
+  .lb-prev, .lb-next { font-size: 30px; padding: 6px 8px; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tab, .folder, .thumb { transition: none; }
+}
